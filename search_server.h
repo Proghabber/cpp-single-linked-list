@@ -13,6 +13,8 @@
 #include <numeric>
 
 #include "document.h"
+#include "string_processing.h"
+
 
 
 

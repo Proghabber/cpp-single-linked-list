@@ -20,27 +20,6 @@
 using namespace std;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int main() {
     SearchServer search_server("and in at"s);
     RequestQueue request_queue(search_server);
