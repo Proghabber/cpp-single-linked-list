@@ -17,3 +17,5 @@ struct Document {
     double relevance;
     int rating;
 };
+
+std::ostream& operator<<(std::ostream& out, const Document& document);

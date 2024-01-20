@@ -5,6 +5,9 @@
 #include <vector>
 #include <iostream>
 
+#include "paginator.h"
+#include "document.h"
+
 
 std::string ReadLine();
 
@@ -22,14 +25,14 @@ std::ostream& operator<<(std::ostream& out, std::vector<T> vec){
     return out;
 }
 
-//std::ostream& operator<<(std::ostream& out, const Document& document);
+
 // ==================== для примера =========================
 
-/*
+
 template<typename T>
 std::vector<std::vector<T>>Paginate(std::vector<T> list, int page_size){
     Paginator exem(list.begin(), list.end(), page_size);
     return exem.ReturnList();
 }
 
-*/
+
