@@ -12,6 +12,8 @@
 #include <cmath>
 #include <numeric>
 
+#include "document.h"
+
 
 
 
@@ -21,43 +23,10 @@ const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double  DEVIATION = 1e-6;
 
 
-std::vector<std::string> SplitIntoWords(const std::string& text) {
-    std::vector<std::string> words;
-    std::string word;
-    for (const char c : text) {
-        if (c == ' ') {
-            if (!word.empty()) {
-                words.push_back(word);
-                word.clear();
-            }
-        } else {
-            word += c;
-        }
-    }
-    if (!word.empty()) {
-        words.push_back(word);
-    }
-
-    return words;
-}
 
 
-struct Document {
 
-    Document() 
-    :id(0), relevance(0.0), rating(0)
-     {
-     }
 
-     Document(int i, double r, int rat) 
-     :id(i), relevance(r), rating(rat)
-     {
-     }
-
-    int id;
-    double relevance;
-    int rating;
-};
 
 
 enum class DocumentStatus {
@@ -84,8 +53,7 @@ template<typename list>
         for (const std::string& word : set_words) {
             if (!word.empty()){
                 if (!NotSpecSymbol(word)){
-                    //throw std::invalid_argument( "Присутствие спец символов недопустимо");
-                    std::cout<<12;
+                    throw std::invalid_argument( "Присутствие спец символов недопустимо");
             }
                 stop_words_.insert(word);
         }
@@ -190,13 +158,13 @@ private:
             if (word_to_document_freqs_.count(word) == 0){
                 continue;
             }
-            for (const auto [document_id, _] : word_to_document_freqs_.at(word)){
+            for (const auto &[document_id, _] : word_to_document_freqs_.at(word)){
                 document_to_relevance.erase(document_id);
             }
         }
 
         std::vector<Document> matched_documents;
-        for (const auto [document_id, relevance] : document_to_relevance){
+        for (const auto &[document_id, relevance] : document_to_relevance){
             matched_documents.push_back(
                 {document_id, relevance, documents_.at(document_id).rating});
         }

@@ -14,23 +14,12 @@
 
 //#include "string_processing.h"
 #include "search_server.h"
+#include "read_input_functions.h"
 using namespace std;
 
 
 
 
-string ReadLine() {
-    string s;
-    getline(cin, s);
-    return s;
-}
-
-int ReadLineWithNumber() {
-    int result;
-    cin >> result;
-    ReadLine();
-    return result;
-}
 
 
 
@@ -195,29 +184,7 @@ private:
 
 
 
-template<typename T>
-ostream& operator<<(ostream& out, vector<T> vec){
-    for (T elem : vec){
-        out<<elem;
-    }
-    return out;
-}
 
-ostream& operator<<(ostream& out, const Document& document){
-    out << "{ "s
-         << "document_id = "s << document.id << ", "s
-         << "relevance = "s << document.relevance << ", "s
-         << "rating = "s << document.rating << " }"s ;
-    return out;
-}
-// ==================== для примера =========================
-
-
-template<typename T>
-vector<vector<T>>Paginate(vector<T> list, int page_size){
-    Paginator exem(list.begin(), list.end(), page_size);
-    return exem.ReturnList();
-}
 
 int main() {
     SearchServer search_server("and in at"s);

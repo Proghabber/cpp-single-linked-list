@@ -3,7 +3,25 @@
 
 
 
+std::vector<std::string> SplitIntoWords(const std::string& text) {
+    std::vector<std::string> words;
+    std::string word;
+    for (const char c : text) {
+        if (c == ' ') {
+            if (!word.empty()) {
+                words.push_back(word);
+                word.clear();
+            }
+        } else {
+            word += c;
+        }
+    }
+    if (!word.empty()) {
+        words.push_back(word);
+    }
 
+    return words;
+}
 
    
   
@@ -20,18 +38,17 @@ void SearchServer::SetStopWords(const std::string& text) {
 void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
                      const std::vector<int>& ratings) {
         if (document_id < 0){
-            //throw std::invalid_argument("ID документа меньше 0");
-            std::cout<<12;
+            throw std::invalid_argument("ID документа меньше 0");
+
         } else if (documents_.count(document_id)){
-            //throw std::invalid_argument("Документ с таким id уже есть в базе");
-            std::cout<<12;
+            throw std::invalid_argument("Документ с таким id уже есть в базе");
+
         }
 
         const std::vector<std::string> words = SplitIntoWordsNoStop(document);
         for (const std::string& word : words){
             if (!NotSpecSymbol(word)){
-                 //throw std::invalid_argument("Документ меет запрещенные символы");
-                 std::cout<<12;
+                 throw std::invalid_argument("Документ меет запрещенные символы");
             }
         }
         set_id_.push_back(document_id);
@@ -86,8 +103,7 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
 
     int SearchServer::GetDocumentId(int index) const {
         if (index < 0 || index > static_cast<int>(set_id_.size())){
-            //throw std::out_of_range( "index за границами размера списка документов ");
-            std::cout<<12;
+            throw std::out_of_range( "index за границами размера списка документов ");
             return INVALID_DOCUMENT_ID;
         }
         return set_id_[index];
@@ -138,16 +154,13 @@ void SearchServer::AddDocument(int document_id, const std::string& document, Doc
             text = text.substr(1);
         }
         if (text.empty()){         
-            //throw std::invalid_argument( "index за границами размера списка документов ");
-            std::cout<<12;
+            throw std::invalid_argument( "index за границами размера списка документов ");
         }
         if (text[0] == '-'){
-            //throw std::invalid_argument( "два минуса у минус слова ");
-            std::cout<<12;
+            throw std::invalid_argument( "два минуса у минус слова ");
         } 
         if (!NotSpecSymbol(text)){
-            //throw std::invalid_argument( "минус слово имеет недопустимые символы");
-            std::cout<<12;
+            throw std::invalid_argument( "минус слово имеет недопустимые символы");
         }
         
         return {text, is_minus, IsStopWord(text)};
