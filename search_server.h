@@ -1,18 +1,29 @@
 //Вставьте сюда своё решение из урока «Очередь запросов» темы «Стек, очередь, дек».‎
 #pragma once
 
+#include <algorithm>
 #include <vector>
+#include <set>
+#include <map>
 #include <string>
-using namespace std;
+#include <exception>
+#include <iostream>
+
+#include <cmath>
+#include <numeric>
+
+
+
+
 
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double  DEVIATION = 1e-6;
 
 
-vector<string> SplitIntoWords(const string& text) {
-    vector<string> words;
-    string word;
+std::vector<std::string> SplitIntoWords(const std::string& text) {
+    std::vector<std::string> words;
+    std::string word;
     for (const char c : text) {
         if (c == ' ') {
             if (!word.empty()) {
@@ -38,8 +49,8 @@ struct Document {
      {
      }
 
-     Document(int id, double relevance, int rating) 
-     :id(id), relevance(relevance), rating(rating)
+     Document(int i, double r, int rat) 
+     :id(i), relevance(r), rating(rat)
      {
      }
 
@@ -65,21 +76,16 @@ public:
         SetStopWords(setter);
     }
 
-    void SetStopWords(const string& text) {
-        set <string> set_words;
-        for (const string& word : SplitIntoWords(text)){
-            set_words.insert(word);
-        }
-        SetStopWords(set_words);
-    }
+    void SetStopWords(const std::string& text);
 
 
 template<typename list>
     void SetStopWords(const list& set_words) {
-        for (const string& word : set_words) {
+        for (const std::string& word : set_words) {
             if (!word.empty()){
                 if (!NotSpecSymbol(word)){
-                    throw invalid_argument("Присутствие спец символов недопустимо"s);
+                    //throw std::invalid_argument( "Присутствие спец символов недопустимо");
+                    std::cout<<12;
             }
                 stop_words_.insert(word);
         }
@@ -88,40 +94,21 @@ template<typename list>
 
 
 
-    void AddDocument(int document_id, const string& document, DocumentStatus status,
-                     const vector<int>& ratings) {
-        if (document_id < 0){
-            throw invalid_argument("ID документа меньше 0"s);
-        } else if (documents_.count(document_id)){
-            throw invalid_argument("Документ с таким id уже есть в базе"s);
-        }
-
-        const vector<string> words = SplitIntoWordsNoStop(document);
-        for (const string& word : words){
-            if (!NotSpecSymbol(word)){
-                 throw invalid_argument("Документ меет запрещенные символы"s);
-            }
-        }
-        set_id_.push_back(document_id);
-        const double inv_word_count = 1.0 / words.size();
-        for (const string& word : words){
-            word_to_document_freqs_[word][document_id] += inv_word_count;
-        }
-        documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
-    }
+    void AddDocument(int document_id, const std::string& document, DocumentStatus status,
+                     const std::vector<int>& ratings);
     
     
     template <typename compor>
-    vector<Document> FindTopDocuments(const string& raw_query,
+    std::vector<Document> FindTopDocuments(const std::string& raw_query,
                                         compor filter_func) const {
-        vector<Document> result;                                                         
+        std::vector<Document> result;                                                         
         const Query query = ParseQuery(raw_query);
     
         result = FindAllDocuments(query, filter_func);
          
         sort(result.begin(), result.end(),
              [](const Document& lhs, const Document& rhs){
-                 if (abs(lhs.relevance - rhs.relevance) < DEVIATION){
+                 if (std::abs(lhs.relevance - rhs.relevance) < DEVIATION){
                      return lhs.rating > rhs.rating;
                  } else {
                      return lhs.relevance > rhs.relevance;
@@ -133,53 +120,16 @@ template<typename list>
         return result;
     }
  
-    vector<Document> FindTopDocuments(const string& raw_query, DocumentStatus match_status) const {
-       return  FindTopDocuments(raw_query,[match_status](int document_id, DocumentStatus status, int rating){return match_status==status;});
-    }
+    std::vector<Document> FindTopDocuments(const std::string& raw_query, DocumentStatus match_status) const;
 
-    vector<Document> FindTopDocuments(const string& raw_query) const { 
-       return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
-    }
+    std::vector<Document> FindTopDocuments(const std::string& raw_query) const;
 
-    int GetDocumentCount() const {
-        return documents_.size();
-    }
+    int GetDocumentCount() const;
 
-    tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query,
-                                                        int document_id)  const{
-        
-        const Query query = ParseQuery(raw_query);
-        
+   std:: tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query,
+                                                        int document_id)  const;
 
-        vector<string> matched_words;
-        for (const string& word : query.plus_words){
-            if (word_to_document_freqs_.count(word) == 0){
-                continue;
-            }
-            if (word_to_document_freqs_.at(word).count(document_id)){
-                matched_words.push_back(word);
-            }
-        }
-        for (const string& word : query.minus_words){
-            if (word_to_document_freqs_.count(word) == 0){
-                continue;
-            }
-            if (word_to_document_freqs_.at(word).count(document_id)){
-                matched_words.clear();
-                break;
-            }
-        }
-        tuple<vector<string>, DocumentStatus> result ={matched_words, documents_.at(document_id).status};
-        return result;
-    }
-
-    int GetDocumentId(int index) const {
-        if (index < 0 || index > set_id_.size()){
-            throw out_of_range( "index за границами размера списка документов "s);
-            return INVALID_DOCUMENT_ID;
-        }
-        return set_id_[index];
-    }
+    int GetDocumentId(int index) const;
 
 private:
     struct DocumentData {
@@ -187,99 +137,44 @@ private:
         DocumentStatus status;
     };
 
-    set<string> stop_words_;
-    map<string, map<int, double>> word_to_document_freqs_;
-    map<int, DocumentData> documents_;
-    vector<int> set_id_;
-    bool IsStopWord(const string& word) const {
-        return stop_words_.count(word) > 0;
-    }
+    std::set<std::string> stop_words_;
+    std::map<std::string, std::map<int, double>> word_to_document_freqs_;
+    std::map<int, DocumentData> documents_;
+    std::vector<int> set_id_;
 
-    static bool NotSpecSymbol(const string& word){
-         
-        // A valid word must not contain special characters
-        return none_of(word.begin(), word.end(), [](char c) {
-            return c >= '\0' && c < ' ';
-        });
-    }
+    bool IsStopWord(const std::string& word) const;
+
+    static bool NotSpecSymbol(const std::string& word);
         
     
      
 
-    vector<string> SplitIntoWordsNoStop(const string& text) const {
-        vector<string> words;
-        for (const string& word : SplitIntoWords(text)){
-            if (!IsStopWord(word)){
-                words.push_back(word);
-            }
-        }
-        return words;
-    }
+    std::vector<std::string> SplitIntoWordsNoStop(const std::string& text) const;
 
-    static int ComputeAverageRating(const vector<int>& ratings) {
-        if (ratings.empty()){
-            return 0;
-        }
-        int size=static_cast<int>(ratings.size());
-        return accumulate(begin(ratings), end(ratings), 0, plus<int>()) / size;       
-    }
+    static int ComputeAverageRating(const std::vector<int>& ratings);
 
     struct QueryWord {
-        string data;
+        std::string data;
         bool is_minus;
         bool is_stop;
     };
 
-    QueryWord ParseQueryWord(string text) const {
-        bool is_minus = false;
-        string mistake;
-        // Word shouldn't be empty
-        if (text[0] == '-'){
-            is_minus = true;
-            text = text.substr(1);
-        }
-        if (text.empty()){         
-            throw invalid_argument( "index за границами размера списка документов "s);
-        }
-        if (text[0] == '-'){
-            throw invalid_argument( "два минуса у минус слова "s);
-        } 
-        if (!NotSpecSymbol(text)){
-            throw invalid_argument( "минус слово имеет недопустимые символы"s);
-        }
-        
-        return {text, is_minus, IsStopWord(text)};
-    }
+    QueryWord ParseQueryWord(std::string text) const;
 
     struct Query {
-        set<string> plus_words;
-        set<string> minus_words;
+        std::set<std::string> plus_words;
+        std::set<std::string> minus_words;
     };
 
-    Query ParseQuery(const string& text) const {
-        Query query;
-        for (const string& word : SplitIntoWords(text)){
-            const QueryWord query_word = ParseQueryWord(word);
-            if (!query_word.is_stop) {
-                if (query_word.is_minus){
-                    query.minus_words.insert(query_word.data);
-                } else {
-                    query.plus_words.insert(query_word.data);
-                }
-            }
-        }
-        return query;
-    }
+    Query ParseQuery(const std::string& text) const;
 
     // Existence required
-    double ComputeWordInverseDocumentFreq(const string& word) const {
-        return log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
-    }
+    double ComputeWordInverseDocumentFreq(const std::string& word) const;
     
     template <typename compor>
-    vector<Document> FindAllDocuments(const Query& query, compor func) const {
-        map<int, double> document_to_relevance;
-        for (const string& word : query.plus_words){
+    std::vector<Document> FindAllDocuments(const Query& query, compor func) const {
+        std::map<int, double> document_to_relevance;
+        for (const std::string& word : query.plus_words){
             if (word_to_document_freqs_.count(word) == 0){
                 continue;
             }
@@ -291,7 +186,7 @@ private:
             }
         }
 
-        for (const string& word : query.minus_words){
+        for (const std::string& word : query.minus_words){
             if (word_to_document_freqs_.count(word) == 0){
                 continue;
             }
@@ -300,7 +195,7 @@ private:
             }
         }
 
-        vector<Document> matched_documents;
+        std::vector<Document> matched_documents;
         for (const auto [document_id, relevance] : document_to_relevance){
             matched_documents.push_back(
                 {document_id, relevance, documents_.at(document_id).rating});
