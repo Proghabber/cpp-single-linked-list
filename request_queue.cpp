@@ -16,7 +16,7 @@ std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query,
               empty=true;  
               empty_reqest_++;   
         }
-        result=SetQuery(empty, raw_query, "status"s);
+        result=SetQuery(empty, raw_query, "status");
         UpdateQuery(result);
 
         return list_document;
@@ -32,14 +32,16 @@ std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query)
               empty=true;
               empty_reqest_++;   
         }
-        result=SetQuery(empty, raw_query,"empty"s);
+        result=SetQuery(empty, raw_query,"empty");
         UpdateQuery(result);
 
         return list_document;
     }
-int RequestQueue::GetNoResultRequests() const;
+int RequestQueue::GetNoResultRequests() const {
+       return empty_reqest_;
+    }
 
-  QueryResult RequestQueue::SetQuery(bool empty, std::string raw_query, std::string filte){
+  RequestQueue::QueryResult RequestQueue::SetQuery(bool empty, std::string raw_query, std::string filte){
         QueryResult ret={empty, raw_query, filte};
         return ret;
     }
