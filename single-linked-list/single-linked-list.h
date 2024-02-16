@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <iterator>
 #include <algorithm>
 
@@ -84,13 +83,14 @@ class SingleLinkedList {
         // Оператор проверки итераторов на неравенство
         // Противоположен !=
         [[nodiscard]] bool operator!=(const BasicIterator<Type>& rhs) const noexcept {
-             return this->node_ != rhs.node_;
+            return this->node_ != rhs.node_;
         }
 
         // Оператор прединкремента. После его вызова итератор указывает на следующий элемент списка
         // Возвращает ссылку на самого себя
         // Инкремент итератора, не указывающего на существующий элемент списка, приводит к неопределённому поведению
         BasicIterator& operator++() noexcept {
+            assert(node_!=nullptr);
             node_ = node_->next_node;         
             return *this;
         }
@@ -100,6 +100,7 @@ class SingleLinkedList {
         // Инкремент итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         BasicIterator operator++(int) noexcept {
+            assert(node_!=nullptr); // а тут,похоже на то что надо?
             auto new_node(*this);
             node_ = node_->next_node;        
             return new_node;
@@ -111,6 +112,7 @@ class SingleLinkedList {
         // Вызов этого оператора у итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         [[nodiscard]] reference operator*() const noexcept {
+            assert(node_!=nullptr);
             return node_->value;
         }
 
@@ -118,7 +120,7 @@ class SingleLinkedList {
         // Вызов этого оператора у итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         [[nodiscard]] pointer operator->() const noexcept {
-            //assert(node_!=nullptr);
+            assert(node_!=nullptr);
             return &node_->value;
         }
 
@@ -252,6 +254,7 @@ public:
      * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
      */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(&pos!=nullptr);
         pos.node_->next_node = new Node(value, pos.node_->next_node);
         size_++;
         return Iterator{pos.node_->next_node};
@@ -264,6 +267,7 @@ public:
      */
     
     Iterator EraseAfter(ConstIterator pos) noexcept {
+        assert(&pos!=nullptr);
         if ( pos.node_->next_node == nullptr ){
             return Iterator{nullptr};
         }
@@ -275,32 +279,30 @@ public:
     }
 
      SingleLinkedList(std::initializer_list<Type> values) {
+        
         SingleLinkedList tmp;
-        SingleLinkedList tmp2;
-        for (auto it = values.begin(); it != values.end(); ++it) {
-            tmp.PushFront(*it);
+        Iterator pos = tmp.before_begin();
+        for(Type val:values){
+            tmp.InsertAfter(pos,val);
+            pos++;
         }
-        for (auto it = tmp.begin(); it != tmp.end(); ++it) {
-            tmp2.PushFront(*it);
-        }
-        swap(tmp2);
+        swap(tmp);
     }
 
     SingleLinkedList(const SingleLinkedList& other) {
         assert(size_ == 0 && head_.next_node == nullptr);
         SingleLinkedList tmp1;
-        SingleLinkedList tmp2;
-        for (auto alem:other){
-            tmp1.PushFront(alem);
+        Iterator pos=tmp1.before_begin();
+        for(Iterator pos1=other.begin();pos1!=other.end();pos1++){
+            //tmp1.PushFront(*pos);
+            tmp1.InsertAfter(pos,pos1);
+            pos++;
         }
-        for (auto alem:tmp1){
-            tmp2.PushFront(alem);
-        }
-        swap(tmp2);
+        swap(tmp1);
     }
 
     SingleLinkedList& operator=(const SingleLinkedList& rhs) {
-        if (this !=& rhs){ 
+        if (this != &rhs){ 
             SingleLinkedList tmp(rhs);
             swap(tmp);
         }
