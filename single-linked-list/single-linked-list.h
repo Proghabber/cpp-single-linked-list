@@ -254,7 +254,7 @@ public:
      * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
      */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
-        assert(&pos!=nullptr);
+        assert(pos.node_!=nullptr);
         pos.node_->next_node = new Node(value, pos.node_->next_node);
         size_++;
         return Iterator{pos.node_->next_node};
@@ -267,7 +267,8 @@ public:
      */
     
     Iterator EraseAfter(ConstIterator pos) noexcept {
-        assert(&pos!=nullptr);
+        //Node c=*pos;
+        assert(pos.node_!=nullptr);
         if ( pos.node_->next_node == nullptr ){
             return Iterator{nullptr};
         }
@@ -280,25 +281,24 @@ public:
 
      SingleLinkedList(std::initializer_list<Type> values) {
         
-        SingleLinkedList tmp;
-        Iterator pos = tmp.before_begin();
-        for(Type val:values){
-            tmp.InsertAfter(pos,val);
-            pos++;
-        }
-        swap(tmp);
+       CopySwap(values);
     }
 
     SingleLinkedList(const SingleLinkedList& other) {
         assert(size_ == 0 && head_.next_node == nullptr);
-        SingleLinkedList tmp1;
-        Iterator pos=tmp1.before_begin();
-        for(Iterator pos1=other.begin();pos1!=other.end();pos1++){
-            //tmp1.PushFront(*pos);
-            tmp1.InsertAfter(pos,pos1);
-            pos++;
-        }
-        swap(tmp1);
+        CopySwap(other);
+    }
+
+    template <typename list>
+    void CopySwap(list& rhs) noexcept {
+        SingleLinkedList tmp;
+        auto pos = tmp.before_begin();
+        for(auto pos1:rhs ){
+                //tmp1.PushFront(*pos);
+                tmp.InsertAfter(pos,pos1);
+                pos++;
+            }
+            swap(tmp);
     }
 
     SingleLinkedList& operator=(const SingleLinkedList& rhs) {
@@ -321,6 +321,8 @@ private:
 };
 
 // внешние функции разместите здесь
+
+
 
 template <typename Type>
 void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
